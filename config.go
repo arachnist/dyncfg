@@ -12,6 +12,8 @@ type Config struct {
     Servers     map[string] string
     Channels    map[string] string
     Passwords   map[string] string
+    Plugins     []string
+    Ignore      []string
 }
 
 func ReadConfig(path string) (Config, error) {
