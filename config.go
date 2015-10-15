@@ -14,6 +14,7 @@ type Config struct {
     Passwords   map[string] string
     Plugins     []string
     Ignore      []string
+    Logpath     string
 }
 
 func ReadConfig(path string) (Config, error) {
