@@ -9,8 +9,8 @@ type Config struct {
     Nick        string
     Host        string
     Networks    []string
-    Servers     map[string] string
-    Channels    map[string] string
+    Servers     map[string] []string
+    Channels    map[string] []string
     Passwords   map[string] string
     Plugins     []string
     Ignore      []string
