@@ -8,6 +8,7 @@ import (
 type Config struct {
     Nick        string
     Host        string
+    RealName    string
     Networks    []string
     Servers     map[string] []string
     Channels    map[string] []string
