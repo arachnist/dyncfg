@@ -10,9 +10,8 @@ type Config struct {
 	Host      string
 	RealName  string
 	User      string
-	Networks  []string
-	Servers   map[string][]string
-	Channels  map[string][]string
+	Servers   []string
+	Channels  []string
 	Passwords map[string]string
 	Plugins   []string
 	Ignore    []string
