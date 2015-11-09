@@ -9,17 +9,6 @@ import (
 )
 
 type Config struct {
-	Nick      string
-	Host      string
-	RealName  string
-	User      string
-	Networks  []string
-	Servers   map[string][]string
-	Channels  map[string][]string
-	Passwords map[string]string
-	Plugins   []string
-	Ignore    []string
-	Logpath   string
 	ConfigDir string
 }
 
