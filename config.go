@@ -59,40 +59,40 @@ func (c *Config) Lookup(context Context, key string) interface{} {
 				log.Println("Context:", context, "Looking up", key, "in", fpath)
 				value = lookupvar(key, fpath)
 				if value != nil {
-                    log.Println("Context:", context, "Found", key, value)
+					log.Println("Context:", context, "Found", key, value)
 					return value
 				}
 			}
 
-            fpath = path.Join(c.ConfigDir, context.Network, context.Source+".json")
+			fpath = path.Join(c.ConfigDir, context.Network, context.Source+".json")
 
-            log.Println("Context:", context, "Looking up", key, "in", fpath)
-            value = lookupvar(key, fpath)
-            if value != nil {
-                log.Println("Context:", context, "Found", key, value)
-                return value
-            }
+			log.Println("Context:", context, "Looking up", key, "in", fpath)
+			value = lookupvar(key, fpath)
+			if value != nil {
+				log.Println("Context:", context, "Found", key, value)
+				return value
+			}
 		}
 
-        fpath = path.Join(c.ConfigDir, context.Network+".json")
+		fpath = path.Join(c.ConfigDir, context.Network+".json")
 
-        log.Println("Context:", context, "Looking up", key, "in", fpath)
-        value = lookupvar(key, fpath)
-        if value != nil {
-            log.Println("Context:", context, "Found", key, value)
-            return value
-        }
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
+		value = lookupvar(key, fpath)
+		if value != nil {
+			log.Println("Context:", context, "Found", key, value)
+			return value
+		}
 	}
 
-    fpath = path.Join(c.ConfigDir, "common.json")
+	fpath = path.Join(c.ConfigDir, "common.json")
 
-    log.Println("Context:", context, "Looking up", key, "in", fpath)
-    value = lookupvar(key, fpath)
-    if value != nil {
-        log.Println("Context:", context, "Found", key, value)
-        return value
-    } else {
-        log.Println("Key", key, "not found")
-        return nil
-    }
+	log.Println("Context:", context, "Looking up", key, "in", fpath)
+	value = lookupvar(key, fpath)
+	if value != nil {
+		log.Println("Context:", context, "Found", key, value)
+		return value
+	} else {
+		log.Println("Key", key, "not found")
+		return nil
+	}
 }
