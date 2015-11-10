@@ -27,6 +27,11 @@ type Context struct {
 
 var C Config
 
+func init() {
+	log.Println("Initializing configuration cache")
+	C.Cache = make(map[string]cacheEntry)
+}
+
 func lookupvar(key, path string) interface{} {
 	var f interface{}
 	i, err := os.Stat(path)
