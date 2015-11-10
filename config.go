@@ -35,11 +35,18 @@ func init() {
 func lookupvar(key, path string) interface{} {
 	var f interface{}
 	i, err := os.Stat(path)
+	_, ok := C.Cache[path]
+	if os.IsNotExist(err) {
+		log.Println("Config does not exist", path)
+		if ok {
+			log.Println("Purging", path, "from cache")
+			delete(C.Cache, path)
+		}
+	}
 	if err != nil {
 		return nil
 	}
 
-	_, ok := C.Cache[path]
 	if C.Cache[path].ModTime.Before(i.ModTime()) || !ok {
 		log.Println("Stale cache for", path)
 		data, err := ioutil.ReadFile(path)
