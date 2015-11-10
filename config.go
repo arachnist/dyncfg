@@ -6,10 +6,17 @@ import (
 	"log"
 	"os"
 	"path"
+	"time"
 )
+
+type cacheEntry struct {
+	ModTime  time.Time
+	Contents interface{}
+}
 
 type Config struct {
 	ConfigDir string
+	Cache     map[string]cacheEntry
 }
 
 type Context struct {
@@ -22,19 +29,36 @@ var C Config
 
 func lookupvar(key, path string) interface{} {
 	var f interface{}
-	_, err := os.Stat(path)
+	i, err := os.Stat(path)
 	if err != nil {
 		return nil
 	}
 
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil
+	_, ok := C.Cache[path]
+	if C.Cache[path].ModTime.Before(i.ModTime()) || !ok {
+		log.Println("Stale cache for", path)
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+
+		err = json.Unmarshal(data, &f)
+		if err != nil {
+			log.Println("Cannot parse", path)
+			return nil
+		}
+
+		log.Println("Updating cache for", path)
+		C.Cache[path] = cacheEntry{
+			ModTime:  i.ModTime(),
+			Contents: f,
+		}
+
+		return f.(map[string]interface{})[key]
+	} else {
+		log.Println("Found cache for", path)
+		return C.Cache[path].Contents.(map[string]interface{})[key]
 	}
-
-	err = json.Unmarshal(data, &f)
-
-	return f.(map[string]interface{})[key]
 }
 
 func (c *Config) Lookup(context Context, key string) interface{} {
