@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type cacheEntry struct {
 type config struct {
 	cache         map[string]cacheEntry
 	buildFileList func(map[string]string) []string
+	l             sync.Mutex
 }
 
 var c config
@@ -72,6 +74,9 @@ func SetFileListBuilder(f func(map[string]string) []string) {
 
 func Lookup(context map[string]string, key string) interface{} {
 	var value interface{}
+
+	c.l.Lock()
+	defer c.l.Unlock()
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context", context, "Looking up", key, "in", fpath)
