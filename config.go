@@ -79,7 +79,7 @@ func Lookup(context map[string]string, key string) interface{} {
 	defer c.l.Unlock()
 
 	for _, fpath := range c.buildFileList(context) {
-		log.Println("Context", context, "Looking up", key, "in", fpath)
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
 		value = lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
@@ -87,6 +87,6 @@ func Lookup(context map[string]string, key string) interface{} {
 		}
 	}
 
-	log.Println("Context", context, "Key", key, "not found")
+	log.Println("Context:", context, "Key", key, "not found")
 	return nil
 }
