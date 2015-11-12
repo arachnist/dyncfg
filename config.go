@@ -68,10 +68,16 @@ func lookupvar(key, path string) interface{} {
 	return c.cache[path].contents.(map[string]interface{})[key]
 }
 
+// SetFileListBuilder registers file list builder function.
+//
+// Registered function takes context (key-value map[string]string) as the only
+// argument and return a slice of strings - file paths.
 func SetFileListBuilder(f func(map[string]string) []string) {
 	c.buildFileList = f
 }
 
+// Lookup searches for requested configuration key in file list built using
+// context.
 func Lookup(context map[string]string, key string) interface{} {
 	var value interface{}
 
