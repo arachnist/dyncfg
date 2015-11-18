@@ -8,6 +8,7 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"reflect"
 	"testing"
@@ -136,15 +137,11 @@ func TestLookupStringMap(t *testing.T) {
 	}
 }
 
-type nullWriter int
-
-func (nullWriter) Write([]byte) (int, error) { return 0, nil }
-
 func configLookupHelper(map[string]string) []string {
 	return []string{"this/thing/does/not/exist.json", ".testconfig.json"}
 }
 
 func init() {
 	SetFileListBuilder(configLookupHelper)
-	log.SetOutput(new(nullWriter))
+	log.SetOutput(ioutil.Discard)
 }
