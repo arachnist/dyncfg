@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -99,4 +100,48 @@ func Lookup(context map[string]string, key string) interface{} {
 
 	log.Println("Context:", context, "Key", key, "not found")
 	return nil
+}
+
+// LookupString is analogous to Lookup(), but does the cast to string.
+func LookupString(context map[string]string, key string) string {
+	var value interface{}
+
+	c.l.Lock()
+	defer c.l.Unlock()
+
+	for _, fpath := range c.buildFileList(context) {
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
+		value = lookupvar(key, fpath)
+		if value != nil {
+			log.Println("Context:", context, "Found", key, value)
+			return value.(string)
+		}
+	}
+
+	log.Println("Context:", context, "Key", key, "not found")
+	return ""
+}
+
+// LookupStringSlice is analogous to Lookup(), but does the cast to []string
+func LookupStringSlice(context map[string]string, key string) (retval []string) {
+	var value []interface{}
+
+	c.l.Lock()
+	defer c.l.Unlock()
+
+	for _, fpath := range c.buildFileList(context) {
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
+		value = lookupvar(key, fpath).([]interface{})
+		if value != nil {
+			log.Println("Context:", context, "Found", key, value)
+			for _, s := range value {
+				retval = append(retval, s.(string))
+			}
+			sort.Strings(retval)
+			return retval
+		}
+	}
+
+	log.Println("Context:", context, "Key", key, "not found")
+	return []string{""}
 }
