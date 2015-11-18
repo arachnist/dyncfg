@@ -150,6 +150,7 @@ func LookupStringSlice(context map[string]string, key string) (retval []string) 
 // map[string]bool for optimised lookups.
 func LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
 	var value interface{}
+	retval = make(map[string]bool)
 
 	c.l.Lock()
 	defer c.l.Unlock()
