@@ -146,5 +146,5 @@ func configLookupHelper(map[string]string) []string {
 
 func init() {
 	SetFileListBuilder(configLookupHelper)
-	log.SetOutput(nullWriter)
+	log.SetOutput(new(nullWriter))
 }
