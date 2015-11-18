@@ -145,3 +145,27 @@ func LookupStringSlice(context map[string]string, key string) (retval []string) 
 	log.Println("Context:", context, "Key", key, "not found")
 	return []string{""}
 }
+
+// LookupStringMap is analogous to Lookup(), but does the cast to
+// map[string]bool for optimised lookups.
+func LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
+	var value interface{}
+
+	c.l.Lock()
+	defer c.l.Unlock()
+
+	for _, fpath := range c.buildFileList(context) {
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
+		value = lookupvar(key, fpath)
+		if value != nil {
+			log.Println("Context:", context, "Found", key, value)
+			for _, s := range value.([]interface{}) {
+				retval[s.(string)] = true
+			}
+			return retval
+		}
+	}
+
+	log.Println("Context:", context, "Key", key, "not found")
+	return retval
+}
