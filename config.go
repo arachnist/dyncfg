@@ -124,17 +124,17 @@ func LookupString(context map[string]string, key string) string {
 
 // LookupStringSlice is analogous to Lookup(), but does the cast to []string
 func LookupStringSlice(context map[string]string, key string) (retval []string) {
-	var value []interface{}
+	var value interface{}
 
 	c.l.Lock()
 	defer c.l.Unlock()
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath).([]interface{})
+		value = lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
-			for _, s := range value {
+			for _, s := range value.([]interface{}) {
 				retval = append(retval, s.(string))
 			}
 			sort.Strings(retval)
