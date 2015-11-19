@@ -20,7 +20,7 @@ var emptyContext map[string]string
 // func Lookup(context map[string]string, key string) interface{}
 var testsLookup = []struct {
 	key           string
-	expectedValue interface{}
+	expectedValue string
 }{
 	{
 		key:           "TestLookup",
@@ -28,7 +28,7 @@ var testsLookup = []struct {
 	},
 	{
 		key:           "NotExisting",
-		expectedValue: nil,
+		expectedValue: "<nil>",
 	},
 }
 
