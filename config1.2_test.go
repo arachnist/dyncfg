@@ -16,11 +16,6 @@ import (
 
 var emptyContext map[string]string
 
-type testElem struct {
-	key           string
-	expectedValue interface{}
-}
-
 // func Lookup(context map[string]string, key string) interface{}
 var testsLookup = []struct {
 	key           string
