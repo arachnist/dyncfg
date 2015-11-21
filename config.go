@@ -30,6 +30,7 @@ var c config
 func init() {
 	log.Println("Initializing configuration cache")
 	c.cache = make(map[string]cacheEntry)
+	c.l.Lock() // Lock until we have a proper file list builder
 }
 
 func lookupvar(key, path string) interface{} {
@@ -79,6 +80,7 @@ func lookupvar(key, path string) interface{} {
 // argument and return a slice of strings - file paths.
 func SetFileListBuilder(f func(map[string]string) []string) {
 	c.buildFileList = f
+	c.l.Unlock()
 }
 
 // Lookup searches for requested configuration key in file list built using
