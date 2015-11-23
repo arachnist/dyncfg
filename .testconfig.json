@@ -2,5 +2,6 @@
     "TestLookup":"this can be anything you can imagine, but now it's just a string",
     "TestLookupString":"this should be a string",
     "TestLookupStringSlice":["i", "am", "going", "to", "be", "a", "slice"],
-    "TestLookupStringMap":["I", "want", "to", "be", "a", "map[string]bool"]
+    "TestLookupStringMap":["I", "want", "to", "be", "a", "map[string]bool"],
+    "ThisWillBeAnInt":42
 }

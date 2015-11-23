@@ -70,6 +70,33 @@ func TestLookupString(t *testing.T) {
 	}
 }
 
+// func LookupInt(context map[string]string, key string) int
+var testsLookupInt = []struct {
+	key           string
+	expectedValue int
+}{
+	{
+		key:           "ThisWillBeAnInt",
+		expectedValue: 42,
+	},
+	{
+		key:           "NotExisting",
+		expectedValue: -1,
+	},
+}
+
+func TestLookupInt(t *testing.T) {
+	for i, e := range testsLookupInt {
+		v := LookupInt(emptyContext, e.key)
+		if fmt.Sprintf("%+v", v) != fmt.Sprintf("%+v", e.expectedValue) {
+			t.Log("test#", i+1, "Lookup key", e.key)
+			t.Logf("expected: %+v\n", e.expectedValue)
+			t.Logf("result  : %+v\n", v)
+			t.Fail()
+		}
+	}
+}
+
 // func LookupStringSlice(context map[string]string, key string) []string
 var testsLookupStringSlice = []struct {
 	key           string

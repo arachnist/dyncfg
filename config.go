@@ -124,6 +124,26 @@ func LookupString(context map[string]string, key string) string {
 	return ""
 }
 
+// LookupInt is analogous to Lookup(), but does the cast to int.
+func LookupInt(context map[string]string, key string) int {
+	var value interface{}
+
+	c.l.Lock()
+	defer c.l.Unlock()
+
+	for _, fpath := range c.buildFileList(context) {
+		log.Println("Context:", context, "Looking up", key, "in", fpath)
+		value = lookupvar(key, fpath)
+		if value != nil {
+			log.Println("Context:", context, "Found", key, value)
+			return int(value.(float64))
+		}
+	}
+
+	log.Println("Context:", context, "Key", key, "not found")
+	return -1
+}
+
 // LookupStringSlice is analogous to Lookup(), but does the cast to []string
 func LookupStringSlice(context map[string]string, key string) (retval []string) {
 	var value interface{}
