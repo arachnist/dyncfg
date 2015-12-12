@@ -13,6 +13,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 var emptyContext map[string]string
@@ -34,7 +35,7 @@ var testsLookup = []struct {
 
 func TestLookup(t *testing.T) {
 	for i, e := range testsLookup {
-		v := Lookup(emptyContext, e.key)
+		v := c.Lookup(emptyContext, e.key)
 		if fmt.Sprintf("%+v", v) != fmt.Sprintf("%+v", e.expectedValue) {
 			t.Log("test#", i, "Lookup key", e.key)
 			t.Logf("expected: %+v\n", e.expectedValue)
@@ -61,7 +62,7 @@ var testsLookupString = []struct {
 
 func TestLookupString(t *testing.T) {
 	for i, e := range testsLookupString {
-		v := LookupString(emptyContext, e.key)
+		v := c.LookupString(emptyContext, e.key)
 		if fmt.Sprintf("%+v", v) != fmt.Sprintf("%+v", e.expectedValue) {
 			t.Log("test#", i+1, "Lookup key", e.key)
 			t.Logf("expected: %+v\n", e.expectedValue)
@@ -88,7 +89,7 @@ var testsLookupInt = []struct {
 
 func TestLookupInt(t *testing.T) {
 	for i, e := range testsLookupInt {
-		v := LookupInt(emptyContext, e.key)
+		v := c.LookupInt(emptyContext, e.key)
 		if fmt.Sprintf("%+v", v) != fmt.Sprintf("%+v", e.expectedValue) {
 			t.Log("test#", i+1, "Lookup key", e.key)
 			t.Logf("expected: %+v\n", e.expectedValue)
@@ -116,7 +117,7 @@ var testsLookupStringSlice = []struct {
 
 func TestLookupStringSlice(t *testing.T) {
 	for i, e := range testsLookupStringSlice {
-		v := LookupStringSlice(emptyContext, e.key)
+		v := c.LookupStringSlice(emptyContext, e.key)
 		if fmt.Sprintf("%+v", v) != fmt.Sprintf("%+v", e.expectedValue) {
 			t.Log("test#", i+1, "Lookup key", e.key)
 			t.Logf("expected: %+v\n", e.expectedValue)
@@ -150,7 +151,7 @@ var testsLookupStringMap = []struct {
 
 func TestLookupStringMap(t *testing.T) {
 	for i, e := range testsLookupStringMap {
-		v := LookupStringMap(emptyContext, e.key)
+		v := c.LookupStringMap(emptyContext, e.key)
 		if !reflect.DeepEqual(v, e.expectedValue) {
 			t.Log("test#", i+1, "Lookup key", e.key)
 			t.Logf("expected: %+v\n", e.expectedValue)
@@ -164,8 +165,84 @@ func configLookupHelper(map[string]string) []string {
 	return []string{"this/thing/does/not/exist.json", ".testconfig.json"}
 }
 
+func complicatedLookupHelper(map[string]string) []string {
+	return []string{
+		".to-be-removed.json",
+		".to-be-replaced-with-gibberish.json",
+		".to-be-chmoded-000.json",
+		".to-be-replaced.json",
+	}
+}
+
+var testEvents = []struct {
+	desc   string
+	action func()
+	ev     int
+}{
+	{
+		desc:   "remove file",
+		action: func() { _ = os.Remove(".to-be-removed.json") },
+		ev:     1,
+	},
+	{
+		desc: "replace with gibberish",
+		action: func() {
+			_ = ioutil.WriteFile(".to-be-replaced-with-gibberish.json", []byte("!@#%^&!%@$&*#@@%*@^#$^&*@&(!"), 0644)
+		},
+		ev: 2,
+	},
+	{
+		desc: "chmod 000",
+		action: func() {
+			_ = os.Chmod(".to-be-chmoded-000.json", 0000)
+			_ = os.Chtimes(".to-be-chmoded-000.json", time.Now().Local(), time.Now().Local())
+		},
+		ev: 3,
+	},
+	{
+		desc:   "replace",
+		action: func() { _ = ioutil.WriteFile(".to-be-replaced.json", []byte("{\"testkey\":99}"), 0644) },
+		ev:     99,
+	},
+}
+
+func TestLookupvarConditions(t *testing.T) {
+	// create files and put their parsed contents in cache
+	for i := len(complicatedLookupHelper(emptyContext)) - 1; i >= 0; i-- {
+		path := complicatedLookupHelper(emptyContext)[i]
+		err := ioutil.WriteFile(path, []byte(fmt.Sprintf("{\"testkey\":%d}", i)), 0644)
+		if err != nil {
+			t.Log("file write failed")
+		}
+
+		if i != c2.LookupInt(emptyContext, "testkey") {
+			t.Log("LookupInt did not return correct value", i)
+			t.Fail()
+		}
+	}
+
+	time.Sleep(time.Second) // make sure we get to update cache
+
+	for _, e := range testEvents {
+		e.action()
+		v := c2.LookupInt(emptyContext, "testkey")
+		if e.ev != v {
+			t.Log("Test failed:", e.desc, "expected:", e.ev, "got:", v)
+			t.Fail()
+		}
+	}
+
+	for _, p := range complicatedLookupHelper(emptyContext) {
+		_ = os.Remove(p)
+	}
+}
+
+var c *Config = New()
+var c2 *Config = New()
+
 func TestMain(m *testing.M) {
-	SetFileListBuilder(configLookupHelper)
+	c.SetFileListBuilder(configLookupHelper)
+	c2.SetFileListBuilder(complicatedLookupHelper)
 	log.SetOutput(ioutil.Discard)
 	os.Exit(m.Run())
 }
