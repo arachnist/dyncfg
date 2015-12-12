@@ -237,12 +237,10 @@ func TestLookupvarConditions(t *testing.T) {
 	}
 }
 
-var c *Config = New()
-var c2 *Config = New()
+var c *Config = New(configLookupHelper)
+var c2 *Config = New(complicatedLookupHelper)
 
 func TestMain(m *testing.M) {
-	c.SetFileListBuilder(configLookupHelper)
-	c2.SetFileListBuilder(complicatedLookupHelper)
 	log.SetOutput(ioutil.Discard)
 	os.Exit(m.Run())
 }

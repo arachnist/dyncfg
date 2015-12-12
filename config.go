@@ -19,16 +19,20 @@ type cacheEntry struct {
 	contents interface{}
 }
 
+// A Config is a dynamic configuration key lookup mechanism.
 type Config struct {
 	cache         map[string]cacheEntry
 	buildFileList func(map[string]string) []string
 	l             sync.Mutex
 }
 
-func New() *Config {
+// New takes a file list builder and returns a new instance of Config.
+//
+// The instance is ready to use.
+func New(f func(map[string]string) []string) *Config {
 	var c Config
 	c.cache = make(map[string]cacheEntry)
-	c.l.Lock() // Lock until we have a proper file list builder
+	c.buildFileList = f
 	return &c
 }
 
@@ -75,15 +79,6 @@ func (c *Config) lookupvar(key, path string) interface{} {
 
 	log.Println("Found cache for", path)
 	return c.cache[path].contents.(map[string]interface{})[key]
-}
-
-// SetFileListBuilder registers file list builder function.
-//
-// Registered function takes context (key-value map[string]string) as the only
-// argument and return a slice of strings - file paths.
-func (c *Config) SetFileListBuilder(f func(map[string]string) []string) {
-	c.buildFileList = f
-	c.l.Unlock()
 }
 
 // Lookup searches for requested configuration key in file list built using
