@@ -19,21 +19,20 @@ type cacheEntry struct {
 	contents interface{}
 }
 
-type config struct {
+type Config struct {
 	cache         map[string]cacheEntry
 	buildFileList func(map[string]string) []string
 	l             sync.Mutex
 }
 
-var c config
-
-func init() {
-	log.Println("Initializing configuration cache")
+func New() *Config {
+	var c Config
 	c.cache = make(map[string]cacheEntry)
 	c.l.Lock() // Lock until we have a proper file list builder
+	return &c
 }
 
-func lookupvar(key, path string) interface{} {
+func (c *Config) lookupvar(key, path string) interface{} {
 	var f interface{}
 	i, err := os.Stat(path)
 	_, ok := c.cache[path]
@@ -52,12 +51,16 @@ func lookupvar(key, path string) interface{} {
 		log.Println("Stale cache for", path)
 		data, err := ioutil.ReadFile(path)
 		if err != nil {
+			log.Println("Purging", path, "from cache:", err)
+			delete(c.cache, path)
 			return nil
 		}
 
 		err = json.Unmarshal(data, &f)
 		if err != nil {
 			log.Println("Cannot parse", path)
+			log.Println("Purging", path, "from cache:", err)
+			delete(c.cache, path)
 			return nil
 		}
 
@@ -78,14 +81,14 @@ func lookupvar(key, path string) interface{} {
 //
 // Registered function takes context (key-value map[string]string) as the only
 // argument and return a slice of strings - file paths.
-func SetFileListBuilder(f func(map[string]string) []string) {
+func (c *Config) SetFileListBuilder(f func(map[string]string) []string) {
 	c.buildFileList = f
 	c.l.Unlock()
 }
 
 // Lookup searches for requested configuration key in file list built using
 // context.
-func Lookup(context map[string]string, key string) interface{} {
+func (c *Config) Lookup(context map[string]string, key string) interface{} {
 	var value interface{}
 
 	c.l.Lock()
@@ -93,7 +96,7 @@ func Lookup(context map[string]string, key string) interface{} {
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath)
+		value = c.lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
 			return value
@@ -105,7 +108,7 @@ func Lookup(context map[string]string, key string) interface{} {
 }
 
 // LookupString is analogous to Lookup(), but does the cast to string.
-func LookupString(context map[string]string, key string) string {
+func (c *Config) LookupString(context map[string]string, key string) string {
 	var value interface{}
 
 	c.l.Lock()
@@ -113,7 +116,7 @@ func LookupString(context map[string]string, key string) string {
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath)
+		value = c.lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
 			return value.(string)
@@ -125,7 +128,7 @@ func LookupString(context map[string]string, key string) string {
 }
 
 // LookupInt is analogous to Lookup(), but does the cast to int.
-func LookupInt(context map[string]string, key string) int {
+func (c *Config) LookupInt(context map[string]string, key string) int {
 	var value interface{}
 
 	c.l.Lock()
@@ -133,7 +136,7 @@ func LookupInt(context map[string]string, key string) int {
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath)
+		value = c.lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
 			return int(value.(float64))
@@ -145,7 +148,7 @@ func LookupInt(context map[string]string, key string) int {
 }
 
 // LookupStringSlice is analogous to Lookup(), but does the cast to []string
-func LookupStringSlice(context map[string]string, key string) (retval []string) {
+func (c *Config) LookupStringSlice(context map[string]string, key string) (retval []string) {
 	var value interface{}
 
 	c.l.Lock()
@@ -153,7 +156,7 @@ func LookupStringSlice(context map[string]string, key string) (retval []string) 
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath)
+		value = c.lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
 			for _, s := range value.([]interface{}) {
@@ -170,7 +173,7 @@ func LookupStringSlice(context map[string]string, key string) (retval []string) 
 
 // LookupStringMap is analogous to Lookup(), but does the cast to
 // map[string]bool for optimised lookups.
-func LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
+func (c *Config) LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
 	var value interface{}
 	retval = make(map[string]bool)
 
@@ -179,7 +182,7 @@ func LookupStringMap(context map[string]string, key string) (retval map[string]b
 
 	for _, fpath := range c.buildFileList(context) {
 		log.Println("Context:", context, "Looking up", key, "in", fpath)
-		value = lookupvar(key, fpath)
+		value = c.lookupvar(key, fpath)
 		if value != nil {
 			log.Println("Context:", context, "Found", key, value)
 			for _, s := range value.([]interface{}) {
