@@ -4,7 +4,7 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-package config
+package dyncfg
 
 import (
 	"fmt"
@@ -237,8 +237,8 @@ func TestLookupvarConditions(t *testing.T) {
 	}
 }
 
-var c *Config = New(configLookupHelper)
-var c2 *Config = New(complicatedLookupHelper)
+var c = New(configLookupHelper)
+var c2 = New(complicatedLookupHelper)
 
 func TestMain(m *testing.M) {
 	log.SetOutput(ioutil.Discard)
