@@ -19,29 +19,29 @@ type cacheEntry struct {
 	contents interface{}
 }
 
-// A Config is a dynamic configuration key lookup mechanism.
-type Config struct {
+// A Dyncfg is a dynamic configuration key lookup mechanism.
+type Dyncfg struct {
 	cache         map[string]cacheEntry
 	buildFileList func(map[string]string) []string
 	l             sync.Mutex
 }
 
-// New takes a file list builder and returns a new instance of Config.
+// New takes a file list builder and returns a new instance of Dyncfg.
 //
 // The instance is ready to use.
-func New(f func(map[string]string) []string) *Config {
-	var c Config
+func New(f func(map[string]string) []string) *Dyncfg {
+	var c Dyncfg
 	c.cache = make(map[string]cacheEntry)
 	c.buildFileList = f
 	return &c
 }
 
-func (c *Config) lookupvar(key, path string) interface{} {
+func (c *Dyncfg) lookupvar(key, path string) interface{} {
 	var f interface{}
 	i, err := os.Stat(path)
 	_, ok := c.cache[path]
 	if os.IsNotExist(err) {
-		log.Println("Config does not exist", path)
+		log.Println("Dyncfg does not exist", path)
 		if ok {
 			log.Println("Purging", path, "from cache")
 			delete(c.cache, path)
@@ -83,7 +83,7 @@ func (c *Config) lookupvar(key, path string) interface{} {
 
 // Lookup searches for requested configuration key in file list built using
 // context.
-func (c *Config) Lookup(context map[string]string, key string) interface{} {
+func (c *Dyncfg) Lookup(context map[string]string, key string) interface{} {
 	var value interface{}
 
 	c.l.Lock()
@@ -103,7 +103,7 @@ func (c *Config) Lookup(context map[string]string, key string) interface{} {
 }
 
 // LookupString is analogous to Lookup(), but does the cast to string.
-func (c *Config) LookupString(context map[string]string, key string) string {
+func (c *Dyncfg) LookupString(context map[string]string, key string) string {
 	var value interface{}
 
 	c.l.Lock()
@@ -123,7 +123,7 @@ func (c *Config) LookupString(context map[string]string, key string) string {
 }
 
 // LookupInt is analogous to Lookup(), but does the cast to int.
-func (c *Config) LookupInt(context map[string]string, key string) int {
+func (c *Dyncfg) LookupInt(context map[string]string, key string) int {
 	var value interface{}
 
 	c.l.Lock()
@@ -143,7 +143,7 @@ func (c *Config) LookupInt(context map[string]string, key string) int {
 }
 
 // LookupStringSlice is analogous to Lookup(), but does the cast to []string
-func (c *Config) LookupStringSlice(context map[string]string, key string) (retval []string) {
+func (c *Dyncfg) LookupStringSlice(context map[string]string, key string) (retval []string) {
 	var value interface{}
 
 	c.l.Lock()
@@ -168,7 +168,7 @@ func (c *Config) LookupStringSlice(context map[string]string, key string) (retva
 
 // LookupStringMap is analogous to Lookup(), but does the cast to
 // map[string]bool for optimised lookups.
-func (c *Config) LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
+func (c *Dyncfg) LookupStringMap(context map[string]string, key string) (retval map[string]bool) {
 	var value interface{}
 	retval = make(map[string]bool)
 
